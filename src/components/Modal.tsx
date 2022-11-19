@@ -54,6 +54,7 @@ interface State {
   layout?: Layout
   size?: ValueXY
   position?: ValueXY
+  tooltipTranslateX: Animated.Value
   tooltipTranslateY: Animated.Value
   opacity: Animated.Value
 }
@@ -88,6 +89,7 @@ export class Modal extends React.Component<ModalProps, State> {
   state = {
     tooltip: {},
     containerVisible: false,
+    tooltipTranslateX: new Animated.Value(0),
     tooltipTranslateY: new Animated.Value(400),
     opacity: new Animated.Value(0),
     layout: undefined,
@@ -187,20 +189,28 @@ export class Modal extends React.Component<ModalProps, State> {
     }
 
     const duration = this.props.animationDuration! + 200
-    const toValue =
+    const toValueX = this.props.currentStep.tooltipLeftOffset || 0;
+    const translateAnimX = Animated.timing(this.state.tooltipTranslateX, {
+      toValue: toValueX,
+      duration,
+      easing: this.props.easing,
+      delay: duration,
+      useNativeDriver: true,
+    });
+    const toValueY =
       verticalPosition === 'bottom'
         ? tooltip.top
         : obj.top -
         MARGIN -
         135 -
         (this.props.currentStep!.tooltipBottomOffset || 0)
-    const translateAnim = Animated.timing(this.state.tooltipTranslateY, {
-      toValue,
+    const translateAnimY = Animated.timing(this.state.tooltipTranslateY, {
+      toValue: toValueY,
       duration,
       easing: this.props.easing,
       delay: duration,
       useNativeDriver: true,
-    })
+    });
     const opacityAnim = Animated.timing(this.state.opacity, {
       toValue: 1,
       duration,
@@ -211,10 +221,10 @@ export class Modal extends React.Component<ModalProps, State> {
     this.state.opacity.setValue(0)
     if (
       // @ts-ignore
-      toValue !== this.state.tooltipTranslateY._value &&
-      !this.props.currentStep?.keepTooltipPosition
+      (toValueY !== this.state.tooltipTranslateY._value || toValueX !== this.state.tooltipTranslateX._value)
+      && !this.props.currentStep?.keepTooltipPosition
     ) {
-      Animated.parallel([translateAnim, opacityAnim]).start()
+      Animated.parallel([translateAnimY, translateAnimX, opacityAnim]).start();
     } else {
       opacityAnim.start()
     }
@@ -295,7 +305,10 @@ export class Modal extends React.Component<ModalProps, State> {
           {
             zIndex: 99,
             opacity,
-            transform: [{ translateY: this.state.tooltipTranslateY }],
+            transform: [
+              { translateX: this.state.tooltipTranslateX },
+              { translateY: this.state.tooltipTranslateY },
+            ],
           },
         ]}
       >
