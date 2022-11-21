@@ -199,7 +199,7 @@ export class Modal extends React.Component<ModalProps, State> {
     });
     const toValueY =
       verticalPosition === 'bottom'
-        ? tooltip.top
+        ? tooltip.top - (this.props.currentStep!.tooltipBottomOffset || 0)
         : obj.top -
         MARGIN -
         135 -
