@@ -189,7 +189,7 @@ export class Modal extends React.Component<ModalProps, State> {
     }
 
     const duration = this.props.animationDuration! + 200
-    const toValueX = this.props.currentStep.tooltipLeftOffset || 0;
+    const toValueX = this.props.currentStep?.tooltipLeftOffset || 0;
     const translateAnimX = Animated.timing(this.state.tooltipTranslateX, {
       toValue: toValueX,
       duration,
